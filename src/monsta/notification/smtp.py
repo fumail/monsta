@@ -31,6 +31,10 @@ class SMTPMessenger(Messenger):
     def lint(self):
         try:
             smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), self.configvars['helo'],20)
+            
+            if self.configvars['starttls'].lower().strip()=='yes':
+                smtp.starttls()
+            
             user=self.configvars['username'].strip()
             pw=self.configvars['password'].strip()
             if user!='' and pw!='':
