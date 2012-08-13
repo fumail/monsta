@@ -12,6 +12,7 @@ class JabberMessenger(Messenger):
         
         self.helpstrings['jid']='jabber id (example: yourname@jabber.org)'
         self.helpstrings['password']='jabber account password'
+        self.helpstrings['recipient']='alert recipient jid'
         
     def lint(self):
         try:

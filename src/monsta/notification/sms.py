@@ -17,6 +17,7 @@ class ClickatellMessenger(Messenger):
         self.helpstrings['sender']="optional number that should appear as sender(must be authorized)"
         self.helpstrings['password']="cliacktell API password"
         self.helpstrings["username"]="clickatell API username"
+        self.helpstrings['recipient']='alert recipient phone number'
 
         try:
             import xmpp

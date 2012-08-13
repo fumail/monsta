@@ -4,8 +4,12 @@ class Messenger(object):
     def __init__(self):
         self.recipient=None
         self.section=None
-        self.configvars={}
-        self.helpstrings={}
+        self.configvars={
+            'recipient':None,
+        }
+        self.helpstrings={
+            'recipient':'Recipient of the alert',
+        }
         
     def send_message(self,message):
         logging.debug("Unimplemented sendmessage()! recipient=%s message=%s"%(self.recipient,message))

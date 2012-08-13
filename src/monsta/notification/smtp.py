@@ -23,6 +23,8 @@ class SMTPMessenger(Messenger):
         self.helpstrings['sender']="Sender address for the notification email messages"
         self.helpstrings['username']="SMTP Auth Username (leave empty to send without smtp auth)"
         self.helpstrings['password']="SMTP Auth password (leave empty to send without smtp auth)"
+        self.helpstrings['recipient']='alert recipient email address'
+        
          
     def lint(self):
         try:
