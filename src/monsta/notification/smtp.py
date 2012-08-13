@@ -16,6 +16,7 @@ class SMTPMessenger(Messenger):
         self.configvars['sender']=None
         self.configvars['username']=''
         self.configvars['password']=''
+        self.configvars['starttls']='no'
         
         self.helpstrings['host']="SMTP Relay Hostname"
         self.helpstrings['port']="SMTP Port"
@@ -24,6 +25,7 @@ class SMTPMessenger(Messenger):
         self.helpstrings['username']="SMTP Auth Username (leave empty to send without smtp auth)"
         self.helpstrings['password']="SMTP Auth password (leave empty to send without smtp auth)"
         self.helpstrings['recipient']='alert recipient email address'
+        self.helpstrings['starttls']='use starttls to encrypt the smtp traffic'
         
          
     def lint(self):
@@ -42,6 +44,10 @@ class SMTPMessenger(Messenger):
        
     def send_message(self,message,subject=None):
         smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), self.configvars['helo'],20)
+        
+        if self.configvars['starttls'].lower().strip()=='yes':
+            smtp.starttls()
+        
         user=self.configvars['username'].strip()
         pw=self.configvars['password'].strip()
         if user!='' and pw!='':
