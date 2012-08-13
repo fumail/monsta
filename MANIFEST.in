@@ -1,0 +1,4 @@
+include conf/*.dist
+include scripts/init.d-centos/fuglu
+include scripts/main/monsta
+

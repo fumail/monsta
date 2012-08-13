@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+
+import sys
+#local code
+sys.path.insert(0, "../../src")
+
+
+import ConfigParser
+from monsta import MONSTA_VERSION,MainController,MonstaHelp,RunOnce
+from monsta.daemon import DaemonStuff
+import logging
+import logging.config
+import monsta.funkyconsole
+import sys
+import os
+
+controller=None
+
+monstaconfigfile='/etc/monsta/monsta.conf'
+dconfdir='/etc/monsta/conf.d'
+monstaloggingfile='/etc/monsta/logging.conf'
+
+lint=False
+
+if "--version" in sys.argv:
+    print "Monsta Version %s"%MONSTA_VERSION
+    sys.exit(0)        
+  
+if "--help" in sys.argv:
+    mh=MonstaHelp(ConfigParser.ConfigParser())
+    mh.command(*sys.argv[2:])
+    sys.exit(0) 
+  
+config=ConfigParser.ConfigParser()
+if not os.path.exists(monstaconfigfile):
+    print """Configfile (%s) not found. Please create it by renaming the .dist file and modifying it to your needs"""%monstaconfigfile
+    sys.exit(1)
+readconfig=config.readfp(open(monstaconfigfile))
+#load conf.d
+if os.path.isdir(dconfdir):
+    filelist=os.listdir(dconfdir)
+    configfiles=[dconfdir+'/'+c for c in filelist if c.endswith('.conf')]
+    readfiles=config.read(configfiles)
+
+if "--run" in sys.argv:
+    runner=RunOnce(config)
+    if len(sys.argv)!=3:
+        print "Usage: monsta run [sectionname]"
+        sys.exit(1)
+    runner.run(sys.argv[2])
+    sys.exit(0)
+
+if "--lint" in sys.argv:
+    lint=True
+    
+
+
+
+daemon=DaemonStuff('/var/run/monsta.pid')
+if config.getboolean('main', 'daemonize')and not lint:
+    daemon.createDaemon()
+if lint:
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger('').addHandler(console)
+    fc=monsta.funkyconsole.FunkyConsole()
+    print fc.strcolor("monsta", "yellow"),
+    print fc.strcolor(MONSTA_VERSION, "green")
+    print "----------",fc.strcolor("LINT MODE", (fc.MODE["blink"],fc.FG["magenta"])),"----------"
+
+else:
+    if os.path.exists(monstaloggingfile):
+        logging.config.fileConfig(monstaloggingfile)
+    else:
+        syslog = logging.handlers.SysLogHandler('/dev/log', logging.handlers.SysLogHandler.LOG_DAEMON)
+        syslog.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("monsta[%(process)d]: %(message)s")
+        syslog.setFormatter(formatter)
+        logging.getLogger('').addHandler(syslog)
+        logging.getLogger('').setLevel(logging.INFO)
+        #logging.basicConfig(level=logging.INFO)
+
+#drop privileges
+baselogger=logging.getLogger('')
+baselogger.info("monsta Version %s starting up"%MONSTA_VERSION)
+
+try:
+    running_user=config.get('main','user')
+    running_group=config.get('main','group')
+except:
+    running_user='nobody'
+    running_group='nobody'
+daemon.drop_privs(running_user,running_group)
+
+controller=MainController(config)
+    
+if lint:
+    controller.lint()
+    print "lint complete"
+else:
+    controller.startup()
+

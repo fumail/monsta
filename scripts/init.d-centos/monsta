@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Startup script for monsta
+#
+# chkconfig: 2345 66 37
+# description: Monitoring Daemon
+# processname: monsta
+# pidfile: /var/run/monsta.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# See how we were called.
+case "$1" in
+  start)
+        echo -n "Starting Monsta monitoring: "
+        daemon /usr/bin/monsta
+        RETVAL=$?
+        echo
+        ;;
+  stop)
+        echo -n "Stopping Monsta monitoring: "
+        killproc monsta
+        rm -f /var/run/monsta.pid
+        RETVAL=$?
+        echo
+        ;;
+  status)
+        status monsta
+        RETVAL=$?
+        ;;
+  restart)
+        $0 stop
+        $0 start
+        RETVAL=$?
+        ;;
+  		
+  *)
+        echo "Usage: monsta {start|stop|status|restart}"
+        exit 1
+esac
+
+exit $RETVAL

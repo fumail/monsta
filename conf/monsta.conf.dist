@@ -1,0 +1,50 @@
+[main]
+daemonize=1
+user=nobody
+group=nobody
+
+#Getting started:
+#define at lest one check
+#define at least one Test(=group of checks)
+#define at least one Notification
+#run monsta --lint
+#run monsta
+
+
+#A little more detailed
+#Define a set of checks
+#run monsta --help check to get a list of supported ckeck types
+
+#Example
+#[Check_mywebserver] #Section must start with 'Check_'
+#type=portconnect    #each Check requires a type
+#host=example.com
+#port=80
+
+
+#Define a set of notifications
+#run monsta --help notification to get a list of supported notification types
+
+#Example
+#[Notification_bob_email] # Section must start with Notification
+#each notification requires a type
+#type=smtp
+
+#...and a recipient
+#recipient=bob@example.org
+
+#...and depending on the type additional options
+#sender=monsta@example.com
+
+#To activate the ckecks, you need to put them in a test and define notification options
+
+#Example:
+#[Test_cleanmail_team] # Section must start with 'Test_'
+# List of checks, space separated
+#checks=mywebserver
+
+# list of notifications. [number of failed tries]:notification[,notification2] [another number]:notification3    
+#notify=1:bob_email
+
+
+
