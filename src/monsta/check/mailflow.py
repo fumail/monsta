@@ -35,7 +35,7 @@ class SMTP2MAILBOX(BaseCheck):
         self.helpstrings["mailbox_type"]="Type of the mailbox. currently, only 'imap' is supported"
         self.helpstrings["sender"]="Sender email address of the test message"
         self.helpstrings["recipient"]="Recipient email address of the test message"
-        self.helpstrings["rimeout"]="Time to wait for the test message to show up in the target mailbox"
+        self.helpstrings["timeout"]="Time to wait for the test message to show up in the target mailbox"
         self.helpstrings["mailbox_username"]="Login username for the target mailbox"
         self.helpstrings["mailbox_host"]="Target mailbox hostname"
         self.helpstrings["mailbox_password"]="Login password for the target mailbox"
@@ -45,7 +45,7 @@ class SMTP2MAILBOX(BaseCheck):
         self.logger=logging.getLogger('SMTP2MAILBOX')
 
     def performCheck(self):
-        """send message to cm3 and retreive it from the imap server
+        """send email message  and retreive it from the imap server
         
         """
         
