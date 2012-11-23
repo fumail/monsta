@@ -1,4 +1,4 @@
-MONSTA_VERSION="0.0.1"
+MONSTA_VERSION="0.0.2"
 
 
 from monsta.check.mailflow import *
