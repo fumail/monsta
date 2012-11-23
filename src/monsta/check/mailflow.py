@@ -5,6 +5,10 @@ import smtplib
 from email.utils import formatdate
 import imaplib
 import logging
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.header import Header
+
 
 class SMTP2MAILBOX(BaseCheck):
     """Send a test message over SMTP and retreive it from a mailbox (round trip test)"""
@@ -15,6 +19,9 @@ class SMTP2MAILBOX(BaseCheck):
         self.configvars['smtp_port']=25
         self.configvars['smtp_timeout']=20
         self.configvars['smtp_helo']='monsta.local'
+        self.configvars['smtp_username']=''
+        self.configvars['smtp_password']=''
+        self.configvars['smtp_starttls']='no'
         
         self.configvars['mailbox_type']='imap'
         
@@ -26,12 +33,16 @@ class SMTP2MAILBOX(BaseCheck):
         self.configvars['mailbox_host']=None
         self.configvars['mailbox_password']=None
         self.configvars['mailbox_folder']='INBOX'
-        
+        self.configvars['mailbox_ssl']='no'
         
         self.helpstrings['smtp_host']="Send Mail to this host"
         self.helpstrings['smtp_port']="Send Mail to this port"
         self.helpstrings["smtp_timeout"]="SMTP Network timeout in seconds"
         self.helpstrings["smtp_helo"]="HELO string to use in the smtp dialog"
+        self.helpstrings["smtp_username"]="smtp auth username (leave empty for no smtp auth)"
+        self.helpstrings["smtp_password"]="smtp auth password (leave empty for no smtp auth)"
+        self.helpstrings["smtp_starttls"]="encrypt smtp session with starttls"
+        
         self.helpstrings["mailbox_type"]="Type of the mailbox. currently, only 'imap' is supported"
         self.helpstrings["sender"]="Sender email address of the test message"
         self.helpstrings["recipient"]="Recipient email address of the test message"
@@ -53,20 +64,44 @@ class SMTP2MAILBOX(BaseCheck):
         errors=[]
         stats={}
         
-        e2eid=random.randint(10000,100000)
-        body="monsta smtp check id = %s"%e2eid
-        content="e2eid: %s\r\nDate: %s\r\n%s"%(str(e2eid),formatdate(localtime=True),body)
         mx=self.configvars['smtp_host']            
         helo=self.configvars['smtp_helo']
         sender=self.configvars['sender']        
         recipient=self.configvars['recipient']
-        smtp_port=(self.configvars['smtp_port'])
+        smtp_port=int(self.configvars['smtp_port'])
         smtp_timeout=int(self.configvars['smtp_timeout'])
+        user=self.configvars['smtp_username'].strip()
+        pw=self.configvars['smtp_password'].strip()
+        smtp_starttls=False
+        if self.configvars['smtp_starttls'].lower().strip()=='yes':
+            smtp_starttls=True
 
-        smtpServer = smtplib.SMTP(host=mx,port=smtp_port,timeout=smtp_timeout)
-        smtpServer.helo(helo)
-        smtpServer.sendmail(sender, recipient, content)
+        e2eid=random.randint(10000,100000)
+        
+        
+        body="monsta smtp check id = %s"%e2eid
+
+        txt = MIMEText(body, u'plain')
+        
+        txt[u'Subject'] = Header('[monsta] smtp round trip check %s'%e2eid).encode()
+        txt[u'To'] = Header(recipient)
+        txt[u'From'] = Header(sender)
+        txt[u'Date'] = Header(formatdate(localtime=True))
+        txt[u'e2eid'] = Header(str(e2eid))
+
+        
+        
+        self.logger.debug("Sending message id=%s to %s"%(e2eid,mx))
+        smtpServer = smtplib.SMTP(mx, smtp_port, helo,smtp_timeout)
+        if smtp_starttls:
+            smtpServer.starttls()
+        
+        if user!='' and pw!='':
+            smtpServer.login(user,pw)
+            
+        smtpServer.sendmail(sender, recipient, txt.as_string())
         smtpServer.quit()
+        self.logger.debug("Message sent, tls=%s smtpauth=%s"%(smtp_starttls,(user!='' and pw!='')))
         
         timeout=self.configvars['timeout']
         
@@ -79,13 +114,19 @@ class SMTP2MAILBOX(BaseCheck):
                 imapusername=self.configvars['mailbox_username']  
                 imappassword=self.configvars['mailbox_password']  
                 imapfolder=self.configvars['mailbox_folder']  
+                imap_ssl=False
+                if self.configvars['mailbox_ssl'].lower().strip()=='yes':
+                    imap_ssl=True
                 
                 self.logger.debug("Waiting 2 secs...")
                 time.sleep(2)
                 self.logger.debug('Contacting imap server %s'%(imapserver))
                 
-                
-                imap=imaplib.IMAP4(imapserver)
+                if imap_ssl:
+                    imap=imaplib.IMAP4_SSL(imapserver)
+                else:
+                    imap=imaplib.IMAP4(imapserver)
+                    
                 imap.login(imapusername,imappassword)
                 typ,count=imap.select(imapfolder)
                 
