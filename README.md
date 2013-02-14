@@ -56,7 +56,7 @@ Section types:
 
 Checks : A single check if a service is available, say "port 80 on host example.com is reachable"
 
-Tests : Tests contain one or more checks and define what should haben if one or more checks fail.
+Tests : Tests contain one or more checks and define what should happen if one or more checks fail.
 		You need at least one test with one check. Tests also define who should be notified after how many failed attempts.
 		
 Notifications: Monsta supports various ways to notify a user (Email, Chat messages, SMS, ...)
