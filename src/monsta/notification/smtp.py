@@ -3,7 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
-
+import socket
 
 class SMTPMessenger(Messenger):
     """Send notifications by email"""
@@ -12,7 +12,7 @@ class SMTPMessenger(Messenger):
         Messenger.__init__(self)
         self.configvars['host']='127.0.0.1'
         self.configvars['port']=25
-        self.configvars['helo']='monsta.local'
+        self.configvars['helo']='${myhostname}'
         self.configvars['sender']=None
         self.configvars['username']=''
         self.configvars['password']=''
@@ -20,7 +20,7 @@ class SMTPMessenger(Messenger):
         
         self.helpstrings['host']="SMTP Relay Hostname"
         self.helpstrings['port']="SMTP Port"
-        self.helpstrings['helo']="The HELO string to use when connecting to the host"
+        self.helpstrings['helo']="The HELO string to use when connecting to the host. '${myhostname}' uses the current hostname as helo"
         self.helpstrings['sender']="Sender address for the notification email messages"
         self.helpstrings['username']="SMTP Auth Username (leave empty to send without smtp auth)"
         self.helpstrings['password']="SMTP Auth password (leave empty to send without smtp auth)"
@@ -29,8 +29,12 @@ class SMTPMessenger(Messenger):
         
          
     def lint(self):
+        helo=self.configvars['helo']
+        if helo=='${myhostname}':
+            helo=socket.gethostname()
+            
         try:
-            smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), self.configvars['helo'],20)
+            smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), helo,20)
             
             if self.configvars['starttls'].lower().strip()=='yes':
                 smtp.starttls()
@@ -40,14 +44,19 @@ class SMTPMessenger(Messenger):
             if user!='' and pw!='':
                 smtp.login(user,pw)
         except Exception,e:
-            print "SMTP Send failed: %s"%str(e)
+            print "SMTP login failed: %s"%str(e)
             return False
         
         return True
         
        
     def send_message(self,message,subject=None):
-        smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), self.configvars['helo'],20)
+        
+        helo=self.configvars['helo']
+        if helo=='${myhostname}':
+            helo=socket.gethostname()
+        
+        smtp=smtplib.SMTP(self.configvars['host'], int(self.configvars['port']), helo,20)
         
         if self.configvars['starttls'].lower().strip()=='yes':
             smtp.starttls()
