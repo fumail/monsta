@@ -48,7 +48,7 @@ install monsta:
 Configuration
 -------------
 
-The ini-style configuration is done in '/etc/monsta/monsta.conf' (you may use multiple config files as well by puttinging *.conf files
+The ini-style configuration is done in '/etc/monsta/monsta.conf' (you may use multiple config files as well by putting *.conf files
 in '/etc/monsta/conf.d')
 
 
