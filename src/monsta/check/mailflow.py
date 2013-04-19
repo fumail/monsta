@@ -5,7 +5,6 @@ import smtplib
 from email.utils import formatdate
 import imaplib
 import logging
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 
