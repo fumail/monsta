@@ -1,5 +1,6 @@
 from monsta.notification import Messenger
 import smtplib
+from email import utils
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
@@ -73,6 +74,9 @@ class SMTPMessenger(Messenger):
         outer[u'Subject'] = Header(subject).encode()
         outer[u'To'] = self.recipient
         outer[u'From'] = self.configvars['sender']
+        outer[u'auto-submitted'] = 'auto-generated'
+        outer[u'Date'] = utils.formatdate(localtime=True)
+        outer[u'Message-ID'] = utils.make_msgid()
         outer.attach(txtattach)
         
         smtp.sendmail(self.configvars['sender'], self.recipient, outer.as_string())
