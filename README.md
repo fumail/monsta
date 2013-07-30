@@ -38,7 +38,7 @@ for jabber/xmpp support
 > easy_install xmpppy
 
 required for dns checks:
-> easy_install dnspython
+> easy_install pydns
 
 
 install monsta:
