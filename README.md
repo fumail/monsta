@@ -9,6 +9,7 @@ Supported Checks
 Generic: 
 
  * check if port is available and optionally responding with a expected string on connect
+ * run a script and check exit status/ouput
 
 Mail:
 
