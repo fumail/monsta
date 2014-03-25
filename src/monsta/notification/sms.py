@@ -19,13 +19,6 @@ class ClickatellMessenger(Messenger):
         self.helpstrings["username"]="clickatell API username"
         self.helpstrings['recipient']='alert recipient phone number'
 
-        try:
-            import xmpp
-        except ImportError:
-            import sys
-            logging.error("You are trying to use the jabber messenger, but the python xmpp lib (xmpppy) is not installed.")
-            sys.exit(1)
-            
     def lint(self):
         url = "http://api.clickatell.com/http/auth"
         config = {}
