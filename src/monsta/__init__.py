@@ -1,11 +1,11 @@
-MONSTA_VERSION="0.0.2"
+MONSTA_VERSION="0.0.1-13-g1f55d6b"
 
 
 from monsta.check.mailflow import *
 from monsta.check.port import *
 from monsta.check.mailflow import *
 from monsta.check.dns import *
-
+from monsta.check.script import ScriptCheck
 
 from monsta.notification import LogMessenger
 from monsta.notification.smtp import SMTPMessenger
@@ -135,7 +135,7 @@ class MonstaHelp(object):
         self.controller=MainController(config)
         self.fc=FunkyConsole()
         
-    def command(self,*args):
+    def command(self,args):
         """console command"""
         
             
@@ -178,7 +178,7 @@ class MonstaHelp(object):
                 ctype=args[1]
                 self._help_details("notification", notificationdict, ctype)
         else:
-            print "unknown help topic."
+            print "unknown help topic: %s"%args
             sys.exit(1)
             
     def _help_index(self,typename,thedict):
@@ -359,6 +359,7 @@ class MainController(object):
             'dnslookup':DNSLookup,
             'dnsserial':DNSSerialCompare,
             'smtp':SMTPCheck,
+            'script':ScriptCheck,
         }
         self.supportednotifications={
             #'log':LogMessenger,  #enable for debugging
