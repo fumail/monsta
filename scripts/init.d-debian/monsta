@@ -1,0 +1,48 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          monsta
+# Required-Start:    $network $syslog
+# Required-Stop:     $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Simple monitoring daemon written in python
+# Description:       Check ports, ping hosts, test dns replication... 
+### END INIT INFO
+
+set -e
+
+MONSTA="/usr/local/bin/monsta"
+PIDFILE="/var/run/monsta.pid"
+
+OPTIONS=""
+MODULES=""
+
+# Get lsb functions
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+    log_begin_msg "Starting monsta monitoring daemon: "
+    start-stop-daemon --start --quiet --exec "$MONSTA" --pidfile "$PIDFILE" -- $OPTIONS
+    log_end_msg $?
+    ;;
+  stop)
+    log_begin_msg "Stopping monsta monitoring daemon: "
+    start-stop-daemon --stop --quiet --retry 2 --pidfile "$PIDFILE"
+    log_end_msg $?
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  reload|force-reload) 
+    log_begin_msg "Reloading monsta config: "
+    start-stop-daemon --stop --signal HUP --pidfile "$PIDFILE"
+    log_end_msg $?
+    ;;
+  *)
+    log_success_msg "Usage: $0 {start|stop|restart|reload|force-reload}"
+    exit 1
+esac
+
