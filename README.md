@@ -100,3 +100,35 @@ Defining Tests:
 	# 0 is allowed as well, if you want a message every time a test has been performed
 	notify=1:smtp_bob,jabber_bob 2:sms_bob 5:sms_boss 
 
+
+Logging
+-------
+By default, monsta will write to syslog. You should see output in `/var/log/messages` or `/var/log/daemon.log` (depending on you distro)
+
+You can override the logging behaviour by creating a file `/etc/monsta/logging.conf`
+see http://docs.python.org/2/library/logging.config.html#logging-config-fileformat for the format this file should have.
+
+Here is a example I use on a raspberry pi which logs to a file in the ramdisk(to preserve the sd card) and just keeps the last 3 hours of log history.
+
+
+::
+
+	[loggers]
+	keys=root
+	
+	[handlers]
+	keys=logfile
+	
+	[formatters]
+	keys=logfileformatter
+	
+	[logger_root]
+	level=INFO
+	handlers=logfile
+	
+	[handler_logfile]
+	class=handlers.TimedRotatingFileHandler
+	level=NOTSET
+	args=('/dev/shm/monsta.log','h',1,3)
+	formatter=logfileformatter
+
