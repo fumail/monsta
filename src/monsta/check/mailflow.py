@@ -91,15 +91,24 @@ class SMTP2MAILBOX(BaseCheck):
         
         
         self.logger.debug("Sending message id=%s to %s"%(e2eid,mx))
-        smtpServer = smtplib.SMTP(mx, smtp_port, helo,smtp_timeout)
-        if smtp_starttls:
-            smtpServer.starttls()
         
-        if user!='' and pw!='':
-            smtpServer.login(user,pw)
+        try:
+        
+            smtpServer = smtplib.SMTP(mx, smtp_port, helo,smtp_timeout)
+            if smtp_starttls:
+                smtpServer.starttls()
             
-        smtpServer.sendmail(sender, recipient, txt.as_string())
-        smtpServer.quit()
+            if user!='' and pw!='':
+                smtpServer.login(user,pw)
+
+            smtpServer.sendmail(sender, recipient, txt.as_string())
+            smtpServer.quit()
+        except Exception,e:
+            success=False
+            errors.append("Could not send message from %s to %s to mx %s:%s"%(sender,recipient,mx,str(e)))
+            return success,errors,stats
+            
+            
         self.logger.debug("Message sent, tls=%s smtpauth=%s"%(smtp_starttls,(user!='' and pw!='')))
         
         timeout=self.configvars['timeout']
@@ -161,9 +170,6 @@ class SMTP2MAILBOX(BaseCheck):
                 raise Exception("only imap mailbox_type supported so far")
             
         except Exception,e:
-            import traceback
-            trace=traceback.format_exc()
-            logging.error(trace)
             errors.append(str(e))
             success=False
         
