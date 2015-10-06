@@ -111,7 +111,7 @@ class SMTP2MAILBOX(BaseCheck):
             
         self.logger.debug("Message sent, tls=%s smtpauth=%s"%(smtp_starttls,(user!='' and pw!='')))
         
-        timeout=self.configvars['timeout']
+        timeout=int(self.configvars['timeout'])
         
         msgcontent=None
         
