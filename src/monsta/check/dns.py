@@ -1,6 +1,37 @@
 from monsta.check import BaseCheck
 import time
-import logging
+try:
+    from dns import resolver
+    DNSPYTHON_AVAILABLE = True
+except ImportError:
+    DNSPYTHON_AVAILABLE = False
+
+
+def dns_lookup(hostname, qtype='A', nsip=None, exc=False, nx=False):
+    my_resolver = resolver.Resolver()
+    if nsip is not None:
+        my_resolver.nameservers = [nsip]
+    
+    entries = []
+    try:
+        request = my_resolver.query(hostname, qtype)
+        for rec in request:
+            entry = {'ttl': request.rrset.ttl, 'data': rec.to_text().rstrip('.')}
+            if qtype == 'MX':
+                prio, mxr = rec.to_text().split(None, 1)
+                entry = {'ttl': request.rrset.ttl, 'data': mxr.rstrip('.'), 'prio': prio}
+            entries.append(entry)
+    except resolver.NoAnswer:
+        pass
+    except resolver.NXDOMAIN:
+        if nx:
+            raise
+    except Exception:
+        if exc:
+            raise
+    return entries
+
+
 
 class DNSLookup(BaseCheck):
     """Perform a DNS Lookup and test if all required records are being returned"""
@@ -18,16 +49,12 @@ class DNSLookup(BaseCheck):
         self.helpstrings["record"]="Name of the record that should be queried"
         
     def lint(self):
-        try:
-            import DNS
-        except ImportError:
+        if not DNSPYTHON_AVAILABLE:
             print "required pydns library not available for DNS Lookup"
             return False
         return True
                  
     def performCheck(self):
-        import DNS
-        
         success=True
         errors=[]
         stats={}
@@ -37,7 +64,6 @@ class DNSLookup(BaseCheck):
         
         servers=self.configvars['hosts'].strip()
         if servers=='':
-            DNS.DiscoverNameServers()
             serverlist=['',]
         else:
             serverlist=servers.split()
@@ -49,8 +75,8 @@ class DNSLookup(BaseCheck):
             
             start=time.time()
             try:
-                ans=DNS.DnsRequest(question, qtype=rtype, server=nameserver).req().answers
-            except DNS.DNSError,e:
+                ans = dns_lookup(question,qtype=rtype, nsip=nameserver, exc=True, nx=True)
+            except Exception as e:
                 success=False
                 errors.append("Error trying to lookup %s/%s on %s: %s"%(question,rtype,key,str(e)))
                 continue
@@ -64,7 +90,7 @@ class DNSLookup(BaseCheck):
                     errors.append("required answer %s not found for query %s/%s on %s"%(required,question,rtype,key))
                     success=False
                     
-        return (success,errors,stats)
+        return success,errors,stats
     
     
 class DNSSerialCompare(BaseCheck):
@@ -79,17 +105,12 @@ class DNSSerialCompare(BaseCheck):
         self.helpstrings['zone']="Zonename whose SOA should be checked"
       
     def lint(self):
-        try:
-            import DNS
-        except ImportError:
+        if not DNSPYTHON_AVAILABLE:
             print "required pydns library not available for DNS Lookup"
             return False
         return True
 
     def performCheck(self):
-        import DNS
-        
-        success=False
         errors=[]
         stats={}
         
@@ -106,27 +127,24 @@ class DNSSerialCompare(BaseCheck):
         for nameserver in serverlist:
             start=time.time()
             try:
-                ans=DNS.DnsRequest(question, qtype=rtype, server=nameserver).req().answers
-            except DNS.DNSError,e:
-                success=False
+                ans = dns_lookup(question, qtype=rtype, nsip=nameserver, exc=True, nx=True)
+            except Exception as e:
                 errors.append("Error trying to lookup %s/%s on %s: %s"%(question,rtype,nameserver,str(e)))
                 continue
                 
             lookuptime=time.time()-start
             
             stats['responsetime-%s'%nameserver]="%.2f"%lookuptime
-            serial=ans[0]['data'][2][1]
-
-            answers[nameserver]=serial
+            serial = None
+            if ans:
+                soa = ans[0]['data']
+                serial = soa.split()[2]
+                answers[nameserver]=serial
             
             #first nameserver
-            if soaserial==None:
+            if soaserial is None:
                 soaserial=serial
                 continue
-            
-            #all others
-            if soaserial!=serial:
-                success=False
         
         allanswers=set(answers.values())
         count=len(allanswers)
@@ -134,11 +152,11 @@ class DNSSerialCompare(BaseCheck):
             success=False
             errors.append("did not get any SOA records")
         elif count==1:
-            stats['serial']=serial
+            stats['serial']=soaserial
             success=True
         else:
             success=False
             errors.append("different SOA records returned : %s"%answers)
         
-        return (success,errors,stats)   
+        return success,errors,stats
         
