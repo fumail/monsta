@@ -14,8 +14,6 @@ import monsta.funkyconsole
 import sys
 import os
 
-controller=None
-
 monstaconfigfile='/etc/monsta/monsta.conf'
 dconfdir='/etc/monsta/conf.d'
 monstaloggingfile='/etc/monsta/logging.conf'
@@ -33,7 +31,7 @@ if cmdargs.version:
     print "Monsta Version %s"%MONSTA_VERSION
     sys.exit(0)        
 
-if cmdargs.help!=None:
+if cmdargs.help is not None:
     mh=MonstaHelp(ConfigParser.ConfigParser())
     mh.command(cmdargs.help)
     sys.exit(0) 
@@ -63,8 +61,13 @@ lint=cmdargs.lint
 
 
 daemon=DaemonStuff('/var/run/monsta.pid')
-if config.getboolean('main', 'daemonize')and not lint:
+daemonize = False
+if config.getboolean('main', 'daemonize') and not lint:
+    daemonize = True
+    
+if daemonize:
     daemon.createDaemon()
+
 if lint:
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
@@ -79,7 +82,6 @@ if lint:
     print fc.strcolor("monsta", "yellow"),
     print fc.strcolor(MONSTA_VERSION, "green")
     print "----------",fc.strcolor("LINT MODE", (fc.MODE["blink"],fc.FG["magenta"])),"----------"
-
 else:
     if os.path.exists(monstaloggingfile):
         logging.config.fileConfig(monstaloggingfile)
@@ -99,10 +101,11 @@ baselogger.info("monsta Version %s starting up"%MONSTA_VERSION)
 try:
     running_user=config.get('main','user')
     running_group=config.get('main','group')
-except:
+except Exception:
     running_user='nobody'
     running_group='nobody'
-daemon.drop_privs(running_user,running_group)
+if daemonize:
+    daemon.drop_privs(running_user,running_group)
 
 controller=MainController(config)
     
@@ -110,5 +113,8 @@ if lint:
     controller.lint()
     print "lint complete"
 else:
-    controller.startup()
+    try:
+        controller.startup()
+    except KeyboardInterrupt:
+        controller.stayalive = False
 
