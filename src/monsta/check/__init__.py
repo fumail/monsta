@@ -16,7 +16,7 @@ class BaseCheck(object):
         
         subclasses MUST override this
         """
-        return (False,['perFormCheck() not implemented',],{})
+        return False,['perFormCheck() not implemented',],{}
     
     def lint(self):
         return True

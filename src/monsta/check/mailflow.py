@@ -59,7 +59,6 @@ class SMTP2MAILBOX(BaseCheck):
         
         """
         
-        success=False
         errors=[]
         stats={}
         
@@ -128,7 +127,7 @@ class SMTP2MAILBOX(BaseCheck):
                 
                 self.logger.debug("Waiting 2 secs...")
                 time.sleep(2)
-                self.logger.debug('Contacting imap server %s'%(imapserver))
+                self.logger.debug('Contacting imap server %s' % imapserver)
                 
                 if imap_ssl:
                     imap=imaplib.IMAP4_SSL(imapserver)
@@ -139,14 +138,14 @@ class SMTP2MAILBOX(BaseCheck):
                 typ,count=imap.select(imapfolder)
                 
                 if typ=='NO':
-                    raise Exception,"Could not select folder %s"%imapfolder
+                    raise Exception("Could not select folder %s"%imapfolder)
                 
                 killtime=time.time()+timeout
                 start=time.time()
                 while time.time()<killtime:
                     typ, data = imap.search(None, '(HEADER "e2eid" "%s")'%e2eid)
                     if typ=='NO':
-                        raise Exception,"imap search failed"
+                        raise Exception("imap search failed")
                     msgs=data[0].split()
                     nummsgs=len(msgs)
                     if nummsgs==0:
@@ -154,7 +153,7 @@ class SMTP2MAILBOX(BaseCheck):
                         continue
                         
                     if nummsgs>1:
-                        raise Exception,"got more than one message with id %s"%e2eid
+                        raise Exception("got more than one message with id %s"%e2eid)
                     
                     thetime=time.time()-start+2
                     stats['timetomailbox']="%.2f"%thetime
@@ -169,11 +168,10 @@ class SMTP2MAILBOX(BaseCheck):
             else:
                 raise Exception("only imap mailbox_type supported so far")
             
-        except Exception,e:
+        except Exception as e:
             errors.append(str(e))
-            success=False
         
-        if msgcontent!=None:
+        if msgcontent is not None:
             #print msgcontent
             success=True
         else:
@@ -232,7 +230,7 @@ class SMTPCheck(BaseCheck):
                 if code<200 or code>299:
                     errors.append("HELO was not accepted: %s %s"%(code,msg))
                     success=False
-            except Exception,e:
+            except Exception as e:
                 errors.append("Error in HELO: "+str(e))
                 success=False
         
@@ -243,7 +241,7 @@ class SMTPCheck(BaseCheck):
                 if code<200 or code>299:
                     errors.append("MAIL FROM was not accepted: %s %s"%(code,msg))
                     success=False
-            except Exception,e:
+            except Exception as e:
                 errors.append("Error in MAIL FROM: "+str(e))
                 success=False
 
@@ -255,13 +253,13 @@ class SMTPCheck(BaseCheck):
                     errors.append("RCPT was not accepted: %s %s"%(code,msg))
                     success=False
 
-            except Exception,e:
+            except Exception as e:
                 errors.append("Error in RCPT TO: "+str(e))
                 success=False
         
         try:
             smtp.quit()
-        except Exception,e:
+        except Exception:
             pass
         
         return success,errors,stats   

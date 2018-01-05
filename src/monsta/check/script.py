@@ -1,6 +1,4 @@
 from monsta.check import BaseCheck
-import time
-import logging
 import threading
 import subprocess
 import traceback
@@ -90,7 +88,7 @@ class ScriptCheck(BaseCheck):
             errors.append("Command exited with non-zero status %s"%c_status)
             success=False
         
-        return (success,errors,stats)
+        return success,errors,stats
         
         
         

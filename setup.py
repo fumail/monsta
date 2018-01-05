@@ -43,15 +43,19 @@ setup(name = "monsta",
     packages = ['monsta','monsta.check','monsta.notification'],
     scripts = ["scripts/main/monsta"],
     long_description = """Monsta Monitoring Daemon""" ,
-    data_files=[
-                ('/etc/monsta',glob.glob('conf/*.dist')),
-   #             ('/etc/init.d',['scripts/init.d-centos/monsta']),
-                ]
+    data_files = [
+        ('/etc/monsta',glob.glob('conf/*.dist')),
+#       ('/etc/init.d',['scripts/init.d-centos/monsta']),
+    ],
+    requires = [
+        'dnspython',
+        'xmpp',
+    ],
 )
 
 
 #cleanup
-if OLD_VERSFILE_CONTENT!=None:
+if OLD_VERSFILE_CONTENT is not None:
     open(VERSFILE,'w').write(OLD_VERSFILE_CONTENT)
     
 
