@@ -52,13 +52,13 @@ class SimplePortCheck(BaseCheck):
         except Exception,e:
             errors.append(str(e))
         
-        if con!=None:
+        if con is not None:
             try:
                 con.close()
-            except:
+            except Exception:
                 pass
         
-        return (success,errors,stats)
+        return success,errors,stats
         
         
         

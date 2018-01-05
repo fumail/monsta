@@ -1,5 +1,4 @@
 import urllib
-import sys
 import logging
 from monsta.notification import Messenger
 
@@ -26,9 +25,9 @@ class ClickatellMessenger(Messenger):
         config['password'] = self.configvars['password']
         config['api_id'] = self.configvars['api_id']
         query = urllib.urlencode(config)
-        file = urllib.urlopen(url, query)
-        output = file.read()
-        file.close()
+        handle = urllib.urlopen(url, query)
+        output = handle.read()
+        handle.close()
         if output.strip().startswith("OK"):
             return True
         else:
@@ -47,8 +46,8 @@ class ClickatellMessenger(Messenger):
         config['to'] = self.recipient
         config['text'] = message[:159]
         query = urllib.urlencode(config)
-        file = urllib.urlopen(url, query)
-        output = file.read()
-        file.close()
+        handle = urllib.urlopen(url, query)
+        output = handle.read()
+        handle.close()
         
         logging.debug("SMS message sent. output=%s"%output)
