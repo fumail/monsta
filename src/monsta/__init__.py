@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 MONSTA_VERSION="0.0.1-13-g1f55d6b"
 
 
@@ -15,7 +16,7 @@ from monsta.notification.sms import ClickatellMessenger
 from monsta.funkyconsole import FunkyConsole
 
 import logging
-import thread
+import threading
 import random
 import time
 import sys
@@ -61,7 +62,7 @@ class TestRunner(object):
             for notifier in notifiers:
                 try:
                     notifier.send_message(message,subject=subject)    
-                except Exception,e:
+                except Exception as e:
                     import traceback
                     trace=traceback.format_exc()
                     logging.error("[%s] Unhandled exception while sending message to %s : %s, traceback=%s"%(notifier.__class__.__name__,notifier.recipient,str(e),trace))
@@ -72,8 +73,8 @@ class TestRunner(object):
     def _run_check(self,check):
         logging.info("Starting  %s in %s"%(check.section,self.name))
         try:
-            (success,errors,stats)=check.performCheck()
-        except Exception,e:
+            success,errors,stats=check.performCheck()
+        except Exception as e:
             import traceback
             trace=traceback.format_exc()
             logging.error("Unhandled exception %s in check %s of %s : %s"%(str(e),check.section,self.name,trace))
@@ -81,7 +82,7 @@ class TestRunner(object):
             errors=[trace,]
             stats={}
         logging.info("%s in %s completed. success=%s errors=%s stats=%s"%(check.section,self.name,success,errors,stats))
-        return (success,errors,stats)
+        return success,errors,stats
     
     def run(self):
         myname=self.test.section
@@ -151,9 +152,7 @@ class MonstaHelp(object):
                
             ]
             for k,v in options:
-                print self.fc.strcolor(k, [self.fc.MODE["bold"],]),
-                print "\t",
-                print v
+                print(self.fc.strcolor(k, [self.fc.MODE["bold"],]), '\t', v)
             sys.exit(0)
         
         classtype=args[0]
@@ -178,37 +177,37 @@ class MonstaHelp(object):
                 ctype=args[1]
                 self._help_details("notification", notificationdict, ctype)
         else:
-            print "unknown help topic: %s"%args
+            print("unknown help topic: %s"%args)
             sys.exit(1)
             
     def _help_index(self,typename,thedict):
-        print self.fc.strcolor("Available %s types:"%typename,"yellow")
+        print(self.fc.strcolor("Available %s types:"%typename,"yellow"))
         for key in sorted(thedict.keys()):
             cls=thedict[key]
             docstr=cls.__doc__
-            if docstr==None:
+            if docstr is None:
                 docstr="(no description available)"
             else:
                 docstr=self.fc.strcolor(docstr, [self.fc.MODE["bold"],])
             colorkey=self.fc.strcolor(key,"magenta")
-            print "%s : %s"%(colorkey,docstr)
-        print
+            print("%s : %s"%(colorkey,docstr))
+        print()
         sys.exit(0)
     
     def _help_details(self,typename,thedict,value):
         if value not in thedict:
-            print "No such %s type. run 'monsta --help %s' for a list"%(typename,typename)
+            print("No such %s type. run 'monsta --help %s' for a list"%(typename,typename))
             sys.exit(1)
         cls=thedict[value]
         info=self.help_string(cls)
-        print info
-        print
+        print(info)
+        print()
         sys.exit(0)
 
     
     def help_string(self,monstaclass):
         docstr=monstaclass.__doc__
-        if docstr==None:
+        if docstr is None:
             docstr="(no description)"
         else:
             docstr=self.fc.strcolor(docstr, [self.fc.MODE["bold"],])
@@ -219,7 +218,7 @@ class MonstaHelp(object):
         helpstring="%s\nConfiguration:"%docstr
         for var in varnames:
             default=vardict[var]
-            if default==None:
+            if default is None:
                 default=self.fc.strcolor("REQUIRED","red")
             elif default=='':
                 default="(default empty)"
@@ -245,11 +244,11 @@ class RunOnce(object):
         
     def run(self,section):
         if section not in self.config.sections():
-            print "section not found in config: %s"%section
-            print "available sections are:"
+            print("section not found in config: %s"%section)
+            print("available sections are:")
             l=sorted(self.config.sections())
             l=[x for x in l if x.startswith("Check_") or x.startswith("Test_") or x.startswith("Notification_")]
-            print "\n".join(l)
+            print("\n".join(l))
             sys.exit(1)
             
         if section.startswith("Notification_"):
@@ -269,7 +268,7 @@ class RunOnce(object):
         
         ntype=self.config.get(section,"type")
         if ntype not in self.notifyclasses:
-            print "unsupported type: %s"%ntype
+            print("unsupported type: %s"%ntype)
             sys.exit(1)
             
         cls=self.notifyclasses[ntype]
@@ -282,27 +281,27 @@ class RunOnce(object):
         defaultconfig=instance.configvars
         actualconfig={}
         
-        for key,defaultvalue in defaultconfig.iteritems():
+        for key,defaultvalue in iter(defaultconfig.items()):
             defaultvalue=self.controller._get_value(self.config,"%s_default"%ntype,key,defaultvalue)
                                           
             if self.config.has_option(section,key):
                 actualconfig[key]=self.config.get(section,key)
             else:
-                if defaultvalue==None:
-                    print "not all required variables configured. please run --lint"
+                if defaultvalue is None:
+                    print("not all required variables configured. please run --lint")
                     sys.exit(1)
                 else:
                     actualconfig[key]=defaultvalue
         instance.configvars=actualconfig
         
-        print "Running notification test: %s (type %s)"%(section,ntype)
+        print("Running notification test: %s (type %s)"%(section,ntype))
         instance.send_message("Monsta Notification Test",subject="[monsta] Notification test")
     
     
     def run_check(self,section):
         ctype=self.config.get(section,"type")
         if ctype not in self.checkclasses:
-            print "unsupported type: %s"%ctype
+            print("unsupported type: %s"%ctype)
             sys.exit(1)
             
         cls=self.checkclasses[ctype]
@@ -311,42 +310,42 @@ class RunOnce(object):
 
         defaultconfig=instance.configvars
         actualconfig={}
-        for key,defaultvalue in defaultconfig.iteritems():
+        for key,defaultvalue in iter(defaultconfig.items()):
             defaultvalue=self.controller._get_value(self.config,"%s_default"%ctype,key,defaultvalue)
 
             if self.config.has_option(section,key):
                 actualconfig[key]=self.config.get(section,key)
             else:
-                if defaultvalue==None:
-                    print "not all required variables configured. please run --lint"
+                if defaultvalue is None:
+                    print("not all required variables configured. please run --lint")
                     sys.exit(1)
                 else:
                     actualconfig[key]=defaultvalue
         instance.configvars=actualconfig
         
-        print "Running check %s (type %s)"%(section,ctype)
+        print("Running check %s (type %s)"%(section,ctype))
         result=instance.performCheck()
         success,errors,stats=result
         if success:
-            print self.fc.strcolor("CHECK OK", "green")
+            print(self.fc.strcolor("CHECK OK", "green"))
         else:
-            print self.fc.strcolor("CHECK FAILED","red")
+            print(self.fc.strcolor("CHECK FAILED","red"))
         
         if len(errors)>0:
-            print "Errors:"
-            print "\n".join(errors)
+            print("Errors:")
+            print("\n".join(errors))
         
         if len(stats)>0:
-            print "Statistics:"
-            print "\n".join(["%s : %s"%(k,v) for k,v in stats.items()])
+            print("Statistics:")
+            print("\n".join(["%s : %s"%(k,v) for k,v in stats.items()]))
             
 
     def run_test(self,section):
         checks=self.config.get(section,"checks").split()
-        print "Running all checks in %s "%section
+        print("Running all checks in %s "%section)
         for check in checks:
             self.run_check("Check_%s"%check)
-            print ""
+            print()
     
 class MainController(object):
     def __init__(self,config):
@@ -378,7 +377,9 @@ class MainController(object):
         for test in self.tests:
             logging.info("starting test %s"%test.section)
             runner=TestRunner(test)
-            thread.start_new_thread(runner.run, ())
+            t = threading.Thread(target=runner.run)
+            t.daemon = True
+            t.start()
             
         #let the mainthread sleep
         while self.stayalive:
@@ -388,25 +389,25 @@ class MainController(object):
         checks,notifications=self.initFromConfig(self.config)
         for sec in self.config.sections():
             if sec.startswith("Check_") and sec not in checks.keys():
-                print "%s is not used in any tests and will never be run"%sec
+                print("%s is not used in any tests and will never be run"%sec)
                 
             if sec.startswith("Notification_") and sec not in notifications.keys():
-                print "Unused notification: %s"%sec
+                print("Unused notification: %s"%sec)
             
         for key,instance in notifications.items():
-            print "Linting notification %s"%key
+            print("Linting notification %s"%key)
             result=instance.lint()
             if result:
-                print "=> %s OK"%key
+                print("=> %s OK"%key)
             else:
-                print "=> %s FAILED"%key
+                print("=> %s FAILED"%key)
             
     
     def configfail(self,section,option,message):
         import sys
         msg="Invalid config .. section=[%s] option=%s problem: %s"%(section,option,message)
         logging.error(msg)
-        print msg
+        print(msg)
         sys.exit()
        
     def _get_value(self,config,section,option,defaultvalue=None):
@@ -483,13 +484,13 @@ class MainController(object):
                 #get all configs
                 defaultconfig=checkinstance.configvars
                 actualconfig={}
-                for key,defaultvalue in defaultconfig.iteritems():
+                for key,defaultvalue in iter(defaultconfig.items()):
                     defaultvalue=self._get_value(self.config,"%s_default"%checktype,key,defaultvalue)
                     
                     if config.has_option(checksection,key):
                         actualconfig[key]=config.get(checksection,key)
                     else:
-                        if defaultvalue==None:
+                        if defaultvalue is None:
                             self.configfail(checksection, key, "missing option and no default available")
                         else:
                             actualconfig[key]=defaultvalue
@@ -510,10 +511,10 @@ class MainController(object):
             for nblock in notify:
                 all_notifications=[]
                 try:
-                    (level,anblock)=nblock.split(':',1)
+                    level,anblock=nblock.split(':',1)
                     level=int(level)
                     all_notifications=anblock.split(',')
-                except:
+                except Exception:
                     self.configfail(sec, 'notify', "could not parse")
                 
                 test.notifications[level]=[]
@@ -548,13 +549,13 @@ class MainController(object):
       
                     defaultconfig=notifyinstance.configvars
                     actualconfig={}
-                    for key,defaultvalue in defaultconfig.iteritems():
+                    for key,defaultvalue in iter(defaultconfig.items()):
                         defaultvalue=self._get_value(self.config,"%s_default"%checktype,key,defaultvalue)
                                                     
                         if config.has_option(checksection,key):
                             actualconfig[key]=config.get(checksection,key)
                         else:
-                            if defaultvalue==None:
+                            if defaultvalue is None:
                                 self.configfail(checksection, key, "missing option and no default available")
                             else:
                                 actualconfig[key]=defaultvalue

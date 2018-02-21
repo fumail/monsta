@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from monsta.check import BaseCheck
 import time
 import random
@@ -102,7 +103,7 @@ class SMTP2MAILBOX(BaseCheck):
 
             smtpServer.sendmail(sender, recipient, txt.as_string())
             smtpServer.quit()
-        except Exception,e:
+        except Exception as e:
             success=False
             errors.append("Could not send message from %s to %s to mx %s:%s"%(sender,recipient,mx,str(e)))
             return success,errors,stats
@@ -217,7 +218,7 @@ class SMTPCheck(BaseCheck):
                 success=False
             time_banner=time.time()
             stats["banner-time"]="%.2f"%(time_banner-time_start)
-        except Exception,e:
+        except Exception as e:
             errors.append("Error in connect:"+str(e))
             success=False
         

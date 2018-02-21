@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from monsta.check import BaseCheck
 import time
 try:
@@ -50,7 +51,7 @@ class DNSLookup(BaseCheck):
         
     def lint(self):
         if not DNSPYTHON_AVAILABLE:
-            print "required pydns library not available for DNS Lookup"
+            print("required pydns library not available for DNS Lookup")
             return False
         return True
                  
@@ -106,7 +107,7 @@ class DNSSerialCompare(BaseCheck):
       
     def lint(self):
         if not DNSPYTHON_AVAILABLE:
-            print "required pydns library not available for DNS Lookup"
+            print("required pydns library not available for DNS Lookup")
             return False
         return True
 

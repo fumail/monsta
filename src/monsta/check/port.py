@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from monsta.check import BaseCheck
 import socket
 import time
@@ -49,7 +50,7 @@ class SimplePortCheck(BaseCheck):
             
             
             
-        except Exception,e:
+        except Exception as e:
             errors.append(str(e))
         
         if con is not None:

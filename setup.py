@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from distutils.core import setup
 import glob
 import sys
@@ -29,7 +30,7 @@ def git_version():
             return vers
         else:
             return MONSTA_VERSION
-    except Exception,e:
+    except Exception as e:
         return MONSTA_VERSION
 
 
@@ -49,7 +50,7 @@ setup(name = "monsta",
     ],
     requires = [
         'dnspython',
-        'xmpp',
+        'xmpppy',
     ],
 )
 

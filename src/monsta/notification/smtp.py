@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from monsta.notification import Messenger
 import smtplib
 from email import utils
@@ -44,8 +45,8 @@ class SMTPMessenger(Messenger):
             pw=self.configvars['password'].strip()
             if user!='' and pw!='':
                 smtp.login(user,pw)
-        except Exception,e:
-            print "SMTP login failed: %s"%str(e)
+        except Exception as e:
+            print("SMTP login failed: %s"%str(e))
             return False
         
         return True
