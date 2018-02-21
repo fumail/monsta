@@ -1,8 +1,13 @@
+# -*- coding: UTF-8 -*-
 from monsta.check import BaseCheck
 import threading
 import subprocess
 import traceback
 import shlex
+import sys
+
+if sys.version_info[0] >= 3:
+    basestring = str
 
 
 class Command(object):

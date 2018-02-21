@@ -1,4 +1,4 @@
-
+# -*- coding: UTF-8 -*-
 
 class BaseCheck(object):
     """base class for all checks"""

@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import urllib
 import logging
 from monsta.notification import Messenger
@@ -31,7 +32,7 @@ class ClickatellMessenger(Messenger):
         if output.strip().startswith("OK"):
             return True
         else:
-            print "SMS lint failed: %s"%output.strip()
+            print("SMS lint failed: %s"%output.strip())
             return False
 
     
